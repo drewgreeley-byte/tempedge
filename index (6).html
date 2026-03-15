@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TempEdge">
+<meta name="theme-color" content="#0a0e1a">
+<title>TempEdge</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg0:#0a0e1a;--bg1:#111827;--bg2:#1a2235;--b1:rgba(99,130,200,0.13);--t1:#e8edf8;--t2:#8ea3c3;--t3:#4d6080;--blue:#3b82f6;--blue2:#60a5fa;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--teal:#14b8a6;--r:12px;--rsm:8px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg0);color:var(--t1);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;overscroll-behavior:none}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:500px;margin:0 auto}
+#topbar{padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 0;flex-shrink:0}
+#city-rail{flex-shrink:0;padding:8px 0 2px}
+#scroll{flex:1;overflow-y:auto;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 76px);-webkit-overflow-scrolling:touch}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:rgba(10,14,26,0.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--b1);padding:6px 0 calc(env(safe-area-inset-bottom,0px) + 6px);display:flex;z-index:100}
+.tb-row{display:flex;align-items:center;justify-content:space-between}
+.appname{font-size:20px;font-weight:700;letter-spacing:-.5px;background:linear-gradient(130deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.livepill{display:flex;align-items:center;gap:4px;background:rgba(34,197,94,.1);border:.5px solid rgba(34,197,94,.3);border-radius:20px;padding:3px 9px;font-size:11px;color:var(--green);font-weight:600}
+.livepill span{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.update-line{font-size:11px;color:var(--t3);margin-top:2px}
+.rail{display:flex;gap:6px;padding:0 12px;overflow-x:auto;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.ctab{flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--b1);background:var(--bg1);color:var(--t2);transition:all .15s;white-space:nowrap}
+.ctab.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.lead-row{display:flex;gap:5px;margin:10px 0 8px}
+.lbtn{flex:1;padding:6px 0;background:var(--bg2);border:.5px solid var(--b1);border-radius:var(--rsm);font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;text-align:center;transition:all .15s}
+.lbtn.on{background:rgba(59,130,246,.18);border-color:var(--blue);color:var(--blue2)}
+.card{background:var(--bg1);border:.5px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:.5px solid var(--b1)}
+.ch-title{font-size:13px;font-weight:600;color:var(--t1)}
+.ch-sub{font-size:11px;color:var(--t3);text-align:right;max-width:60%}
+.cb{padding:12px 14px}
+.slabel{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin:14px 0 6px;padding:0 2px;display:flex;align-items:center;gap:6px}
+.snum{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:700;flex-shrink:0}
+.h3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 14px}
+.hcell{background:var(--bg2);border-radius:var(--rsm);padding:10px 12px}
+.hcell-lbl{font-size:10px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.hcell-val{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1;color:var(--t1)}
+.hcell-sub{font-size:11px;color:var(--t2);margin-top:3px}
+.hcell.c-blue{background:rgba(59,130,246,.1);border:.5px solid rgba(59,130,246,.22)}.hcell.c-blue .hcell-val{color:var(--blue2)}
+.hcell.c-green{background:rgba(34,197,94,.08);border:.5px solid rgba(34,197,94,.2)}.hcell.c-green .hcell-val{color:var(--green)}
+.hcell.c-amber{background:rgba(245,158,11,.08);border:.5px solid rgba(245,158,11,.2)}.hcell.c-amber .hcell-val{color:var(--amber)}
+.hcell.c-red{background:rgba(239,68,68,.08);border:.5px solid rgba(239,68,68,.2)}.hcell.c-red .hcell-val{color:var(--red)}
+.obs-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 14px 12px}
+.obs-strip::-webkit-scrollbar{display:none}
+.oc{flex-shrink:0;background:var(--bg2);border-radius:var(--rsm);padding:7px 10px;text-align:center;min-width:50px;border:.5px solid var(--b1)}
+.oc.now{border-color:var(--blue2)}.oc.now .oc-v{color:var(--blue2)}
+.oc-t{font-size:10px;color:var(--t3)}.oc-v{font-size:14px;font-weight:600;margin-top:1px}
+.mrow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.mrow:last-of-type{margin-bottom:0}
+.mtag{font-size:11px;font-weight:700;width:38px;flex-shrink:0}
+.mrow-outer{flex:1;padding-right:92px;position:relative;height:20px}
+.mtrack{position:absolute;inset:0;background:var(--bg2);border-radius:3px}
+.mfill{position:absolute;top:0;left:0;height:100%;border-radius:3px;opacity:.75}
+.merr{position:absolute;top:4px;height:12px;border-radius:2px;opacity:.22}
+.mval{position:absolute;right:-46px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;white-space:nowrap}
+.msig{position:absolute;right:-88px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--t3);white-space:nowrap}
+.chartbox{height:155px;position:relative;padding:8px 14px}
+.rmse-note{font-size:10px;color:var(--t3);padding:4px 14px 8px;border-top:.5px solid var(--b1)}
+.ptbl-hdr{display:grid;grid-template-columns:72px 1fr 52px 52px;gap:6px;padding:6px 14px;background:var(--bg2);border-bottom:.5px solid var(--b1)}
+.ptbl-hdr span{font-size:10px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.ptbl-hdr span:nth-child(n+3){text-align:right}
+.prow{display:grid;grid-template-columns:72px 1fr 52px 52px;align-items:center;gap:6px;padding:9px 14px;border-bottom:.5px solid var(--b1)}
+.prow:last-child{border-bottom:none}
+.prow.hi{background:rgba(59,130,246,.05)}
+.pc0{font-size:13px;font-weight:500}
+.pbar-wrap{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px;background:var(--blue)}
+.ppct{font-size:12px;font-weight:600;color:var(--blue2);text-align:right}
+.pdelta{font-size:11px;text-align:right}
+.pdelta.up{color:var(--green)}.pdelta.dn{color:var(--red)}.pdelta.neu{color:var(--t3)}
+.irow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.irow:last-child{margin-bottom:0}
+.ilbl{font-size:12px;color:var(--t2);width:96px;flex-shrink:0}
+.ipbar{flex:1;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.ipfill{height:100%;border-radius:4px}
+.ipval{font-size:12px;font-weight:600;color:var(--blue2);width:30px;text-align:right;flex-shrink:0}
+.idelta{font-size:11px;width:34px;text-align:right;flex-shrink:0}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.badge-red{background:rgba(239,68,68,.12);color:#fca5a5;border:.5px solid rgba(239,68,68,.25)}
+.badge-blue{background:rgba(59,130,246,.12);color:#93c5fd;border:.5px solid rgba(59,130,246,.25)}
+.badge-purple{background:rgba(168,85,247,.12);color:#d8b4fe;border:.5px solid rgba(168,85,247,.25)}
+.badge-teal{background:rgba(20,184,166,.12);color:#5eead4;border:.5px solid rgba(20,184,166,.25)}
+.badge-amber{background:rgba(245,158,11,.12);color:#fcd34d;border:.5px solid rgba(245,158,11,.25)}
+.nbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0;cursor:pointer;color:var(--t3);font-size:10px;font-weight:500;border:none;background:none;transition:all .15s}
+.nbtn.on{color:var(--blue2)}
+.nbtn svg{width:20px;height:20px;stroke-width:1.8;fill:none;stroke:currentColor}
+.page{display:none}.page.on{display:block}
+.kcta{display:flex;align-items:center;justify-content:space-between;background:var(--bg1);border:.5px solid var(--b1);border-radius:var(--r);padding:12px 14px;text-decoration:none;color:var(--t1);margin-bottom:10px}
+.kcta:active{opacity:.7}
+.kcta-l{font-size:13px;font-weight:500}.kcta-sub{font-size:11px;color:var(--t2);margin-top:2px}
+.all-hdr{display:grid;grid-template-columns:1fr 64px 64px 48px;padding:6px 14px;gap:8px;border-bottom:.5px solid var(--b1)}
+.all-hdr span{font-size:10px;color:var(--t3);font-weight:500}
+.all-hdr span:nth-child(n+2){text-align:right}
+.arow{display:grid;grid-template-columns:1fr 64px 64px 48px;align-items:center;gap:8px;padding:10px 14px;border-bottom:.5px solid var(--b1);cursor:pointer;transition:background .1s}
+.arow:last-child{border-bottom:none}
+.arow:active,.arow.sel{background:rgba(59,130,246,.07)}
+.ar-name{font-size:13px;font-weight:500}.ar-tick{font-size:10px;color:var(--t3);margin-top:1px}
+.ar-cons{font-size:13px;font-weight:700;color:var(--blue2);text-align:right}
+.ar-conf{font-size:11px;text-align:right}
+.ar-vol{font-size:10px;color:var(--t3);text-align:right}
+.conf-hi{color:var(--green)}.conf-md{color:var(--amber)}.conf-lo{color:var(--red)}
+.loader{position:fixed;inset:0;background:var(--bg0);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;z-index:999;transition:opacity .4s}
+.loader.out{opacity:0;pointer-events:none}
+.lname{font-size:26px;font-weight:700;background:linear-gradient(130deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lsub{font-size:12px;color:var(--t3)}
+.lbar{width:140px;height:3px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-top:4px}
+.lfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;animation:lf 2s ease forwards}
+@keyframes lf{from{width:0}to{width:100%}}
+#page-guide{display:none;flex-direction:column;height:100%}
+#page-guide.on{display:flex}
+#chat-outer{flex:1;overflow-y:auto;padding:10px 12px 0;-webkit-overflow-scrolling:touch}
+.ctx-banner{background:var(--bg1);border:.5px solid var(--b1);border-radius:var(--r);padding:10px 13px;margin-bottom:10px}
+.ctx-city{font-size:13px;font-weight:600;color:var(--t1)}
+.ctx-details{font-size:11px;color:var(--t3);margin-top:3px;line-height:1.5}
+.sug-wrap{margin-bottom:10px}
+.sug-label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.sug-chips{display:flex;flex-wrap:wrap;gap:6px}
+.sug-chip{background:var(--bg2);border:.5px solid var(--b1);border-radius:20px;padding:6px 11px;font-size:12px;color:var(--t2);cursor:pointer;transition:all .15s}
+.sug-chip:active{background:rgba(59,130,246,.15);border-color:var(--blue);color:var(--blue2)}
+#chat-thread{display:flex;flex-direction:column;gap:10px;padding-bottom:8px}
+.msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.55}
+.msg.user{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.msg.ai{align-self:flex-start;background:var(--bg1);border:.5px solid var(--b1);color:var(--t1);border-bottom-left-radius:4px;white-space:pre-wrap}
+.msg.thinking{align-self:flex-start;background:var(--bg1);border:.5px solid var(--b1);color:var(--t3);border-bottom-left-radius:4px}
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--t3);margin:0 2px;animation:tdot 1.2s ease infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+#chat-input-bar{flex-shrink:0;padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 78px);background:var(--bg0);border-top:.5px solid var(--b1)}
+#chat-input-row{display:flex;gap:8px;align-items:flex-end;background:var(--bg1);border:.5px solid var(--b1);border-radius:22px;padding:6px 6px 6px 14px}
+#chat-input{flex:1;background:none;border:none;outline:none;color:var(--t1);font-size:14px;font-family:inherit;resize:none;max-height:100px;line-height:1.4}
+#chat-input::placeholder{color:var(--t3)}
+#chat-send{width:34px;height:34px;border-radius:50%;background:var(--blue);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s}
+#chat-send:disabled{opacity:.4;cursor:default}
+#chat-send svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.2}
+</style>
+</head>
+<body>
+<div class="loader" id="loader">
+  <div class="lname">TempEdge</div>
+  <div class="lsub">Loading weather models…</div>
+  <div class="lbar"><div class="lfill"></div></div>
+</div>
+
+<div id="app">
+  <div id="topbar">
+    <div class="tb-row">
+      <div><span class="appname">TempEdge</span><div class="update-line" id="upd">Initializing…</div></div>
+      <div class="livepill"><span></span>Live</div>
+    </div>
+  </div>
+  <div id="city-rail"><div class="rail" id="rail"></div></div>
+
+  <div id="scroll">
+    <div class="page on" id="page-market">
+      <div class="lead-row" id="lead-row"></div>
+
+      <div class="slabel"><span class="snum">1</span>Current conditions</div>
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="ch-title" id="city-name">—</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:1px" id="city-station">—</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:8px">
+            <div class="badge badge-blue" id="regime-badge">—</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:3px" id="run-badge">—</div>
+          </div>
+        </div>
+        <div class="h3">
+          <div class="hcell" id="cell-obs">
+            <div class="hcell-lbl">Current obs</div>
+            <div class="hcell-val" id="obs-val">—°</div>
+            <div class="hcell-sub">ASOS hourly</div>
+          </div>
+          <div class="hcell c-blue" id="cell-cons">
+            <div class="hcell-lbl">Consensus high</div>
+            <div class="hcell-val" id="cons-val">—°</div>
+            <div class="hcell-sub" id="cons-conf">—</div>
+          </div>
+          <div class="hcell" id="cell-spread">
+            <div class="hcell-lbl">Model spread</div>
+            <div class="hcell-val" id="spread-val">—°</div>
+            <div class="hcell-sub" id="spread-sub">—</div>
+          </div>
+        </div>
+        <div class="obs-strip" id="obs-strip"></div>
+      </div>
+
+      <div class="slabel"><span class="snum">2</span>Model forecasts — bar = high · shade = ±1σ uncertainty</div>
+      <div class="card">
+        <div class="ch">
+          <div class="ch-title">6-model ensemble</div>
+          <div class="ch-sub" id="rmse-badge">—</div>
+        </div>
+        <div class="cb" style="padding-bottom:6px"><div id="model-bars"></div></div>
+        <div class="rmse-note" id="rmse-note">—</div>
+        <div class="chartbox"><canvas id="prob-chart"></canvas></div>
+        <div style="padding:0 14px 10px;font-size:10px;color:var(--t3)">↑ Bell curves = each model's probability distribution. Clustered = agreement. Wide spread = uncertainty.</div>
+      </div>
+
+      <div class="slabel"><span class="snum">3</span>Strike probabilities — compare these to Kalshi contract prices</div>
+      <div class="card">
+        <div class="ch">
+          <div class="ch-title">P[high ≥ X°F]</div>
+          <div class="ch-sub" id="prob-sub">—</div>
+        </div>
+        <div class="ptbl-hdr">
+          <span>Strike</span>
+          <span style="text-align:left">Probability →</span>
+          <span>Model%</span>
+          <span>Bayes%</span>
+        </div>
+        <div id="prob-rows"></div>
+        <div style="padding:8px 14px;font-size:10px;color:var(--t3);border-top:.5px solid var(--b1)">Model% = weighted ensemble · Bayes% = updated with current obs · Compare to Kalshi ¢ price to find edge</div>
+      </div>
+
+      <div class="slabel"><span class="snum">4</span>Intraday Bayesian — posterior tightens as obs arrive</div>
+      <div class="card">
+        <div class="ch">
+          <div class="ch-title">Bayesian posterior</div>
+          <div class="ch-sub" id="bayes-sub">—</div>
+        </div>
+        <div class="cb">
+          <div id="intra-rows"></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:9px;padding-top:9px;border-top:.5px solid var(--b1)" id="intra-note">—</div>
+        </div>
+      </div>
+
+      <a class="kcta" id="kcta" href="#" target="_blank" rel="noopener">
+        <div>
+          <div class="kcta-l">Open on Kalshi to check contract prices ↗</div>
+          <div class="kcta-sub" id="kcta-sub">—</div>
+        </div>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--t3);flex-shrink:0"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9M10 2h4v4M14 2L7 9"/></svg>
+      </a>
+    </div>
+
+    <div class="page" id="page-all">
+      <div class="slabel" style="margin-top:4px">All 20 markets — model consensus + confidence</div>
+      <div class="card">
+        <div class="ch">
+          <div class="ch-title">Market overview</div>
+          <div class="ch-sub" id="all-lead-lbl">—</div>
+        </div>
+        <div class="all-hdr"><span>City</span><span>Consensus</span><span>Confidence</span><span>Vol</span></div>
+        <div id="all-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-guide">
+    <div id="chat-outer">
+      <div class="ctx-banner">
+        <div class="ctx-city" id="ctx-city">Loading…</div>
+        <div class="ctx-details" id="ctx-details">Fetching market data…</div>
+      </div>
+      <div class="sug-wrap">
+        <div class="sug-label">Suggested questions</div>
+        <div class="sug-chips" id="sug-chips"></div>
+      </div>
+      <div id="chat-thread"></div>
+    </div>
+    <div id="chat-input-bar">
+      <div id="chat-input-row">
+        <textarea id="chat-input" placeholder="e.g. NYC ≥72°F YES is at 55¢ — is there edge?" rows="1"></textarea>
+        <button id="chat-send" onclick="sendChat()">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nbtn on" id="nb-market" onclick="switchPage('market')">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Markets
+    </button>
+    <button class="nbtn" id="nb-all" onclick="switchPage('all')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>All 20
+    </button>
+    <button class="nbtn" id="nb-guide" onclick="switchPage('guide')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Ask AI
+    </button>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const CITIES=[
+  {id:'nyc',label:'NYC', name:'New York City', station:'KNYC',sl:'Central Park',         ticker:'KXHIGHNY',  url:'https://kalshi.com/markets/kxhighny',  lat:40.7789,lon:-73.9692,tz:'America/New_York',   utcOff:-5,regime:'Bermuda High',   rc:'badge-red'},
+  {id:'lax',label:'LAX', name:'Los Angeles',   station:'KLAX',sl:'LAX Airport',           ticker:'KXHIGHLAX', url:'https://kalshi.com/markets/kxhighlax', lat:33.9425,lon:-118.408,tz:'America/Los_Angeles',utcOff:-8,regime:'Marine layer',  rc:'badge-teal'},
+  {id:'mia',label:'MIA', name:'Miami',         station:'KMIA',sl:'Miami Intl',            ticker:'KXHIGHMIA', url:'https://kalshi.com/markets/kxhighmia', lat:25.796, lon:-80.287, tz:'America/New_York',   utcOff:-5,regime:'Sea breeze',     rc:'badge-blue'},
+  {id:'chi',label:'CHI', name:'Chicago',       station:'KMDW',sl:'Midway Airport',        ticker:'KXHIGHCHI', url:'https://kalshi.com/markets/kxhighchi', lat:41.786, lon:-87.752, tz:'America/Chicago',    utcOff:-6,regime:'Low approach',   rc:'badge-purple'},
+  {id:'atx',label:'ATX', name:'Austin',        station:'KAUS',sl:'Austin-Bergstrom',      ticker:'KXHIGHAUS', url:'https://kalshi.com/markets/kxhighaus', lat:30.1975,lon:-97.666, tz:'America/Chicago',    utcOff:-6,regime:'Cutoff ridge',   rc:'badge-red'},
+  {id:'dc', label:'DC',  name:'Washington DC', station:'KDCA',sl:'Reagan National',       ticker:'KXHIGHTDC', url:'https://kalshi.com/markets/kxhightdc', lat:38.852, lon:-77.038, tz:'America/New_York',   utcOff:-5,regime:'Bermuda High',   rc:'badge-red'},
+  {id:'phl',label:'PHL', name:'Philadelphia',  station:'KPHL',sl:'PHL Airport',           ticker:'KXHIGHPHIL',url:'https://kalshi.com/markets/kxhighphil',lat:39.872, lon:-75.241, tz:'America/New_York',   utcOff:-5,regime:'Coastal trough', rc:'badge-purple'},
+  {id:'bos',label:'BOS', name:'Boston',        station:'KBOS',sl:'Logan Airport',         ticker:'KXHIGHTBOS',url:'https://kalshi.com/markets/kxhightbos',lat:42.365, lon:-71.010, tz:'America/New_York',   utcOff:-5,regime:'Sea breeze',     rc:'badge-blue'},
+  {id:'atl',label:'ATL', name:'Atlanta',       station:'KATL',sl:'Hartsfield-Jackson',    ticker:'KXHIGHTATL',url:'https://kalshi.com/markets/kxhightatl',lat:33.637, lon:-84.428, tz:'America/New_York',   utcOff:-5,regime:'Bermuda High',   rc:'badge-red'},
+  {id:'sea',label:'SEA', name:'Seattle',       station:'KSEA',sl:'Sea-Tac Airport',       ticker:'KXHIGHTSEA',url:'https://kalshi.com/markets/kxhightsea',lat:47.449, lon:-122.309,tz:'America/Los_Angeles',utcOff:-8,regime:'Onshore flow',   rc:'badge-teal'},
+  {id:'sfo',label:'SFO', name:'San Francisco', station:'KSFO',sl:'SFO Airport',           ticker:'KXHIGHTSFO',url:'https://kalshi.com/markets/kxhightsfo',lat:37.619, lon:-122.375,tz:'America/Los_Angeles',utcOff:-8,regime:'Marine layer',  rc:'badge-teal'},
+  {id:'den',label:'DEN', name:'Denver',        station:'KDEN',sl:'Denver Intl',           ticker:'KXHIGHDEN', url:'https://kalshi.com/markets/kxhighden', lat:39.856, lon:-104.674,tz:'America/Denver',     utcOff:-7,regime:'Lee trough',     rc:'badge-purple'},
+  {id:'msp',label:'MSP', name:'Minneapolis',   station:'KMSP',sl:'MSP Airport',           ticker:'KXHIGHTMIN',url:'https://kalshi.com/markets/kxhightmin',lat:44.882, lon:-93.222, tz:'America/Chicago',    utcOff:-6,regime:'Continental',    rc:'badge-purple'},
+  {id:'dal',label:'DAL', name:'Dallas',        station:'KDFW',sl:'DFW Airport',           ticker:'KXHIGHTDAL',url:'https://kalshi.com/markets/kxhightdal',lat:32.896, lon:-97.038, tz:'America/Chicago',    utcOff:-6,regime:'Cutoff ridge',   rc:'badge-red'},
+  {id:'phx',label:'PHX', name:'Phoenix',       station:'KPHX',sl:'Sky Harbor',            ticker:'KXHIGHTPHX',url:'https://kalshi.com/markets/kxhightphx',lat:33.4373,lon:-112.008,tz:'America/Phoenix',    utcOff:-7,regime:'Desert ridge',   rc:'badge-red'},
+  {id:'hou',label:'HOU', name:'Houston',       station:'KHOU',sl:'Hobby Airport',         ticker:'KXHIGHTHOU',url:'https://kalshi.com/markets/kxhighthou',lat:29.645, lon:-95.279, tz:'America/Chicago',    utcOff:-6,regime:'Gulf moisture',  rc:'badge-blue'},
+  {id:'lv', label:'LV',  name:'Las Vegas',     station:'KLAS',sl:'Harry Reid Intl',       ticker:'KXHIGHTLV', url:'https://kalshi.com/markets/kxhightlv', lat:36.085, lon:-115.152,tz:'America/Los_Angeles',utcOff:-8,regime:'Desert ridge',   rc:'badge-red'},
+  {id:'okc',label:'OKC', name:'Oklahoma City', station:'KOKC',sl:'Will Rogers Airport',   ticker:'KXHIGHTOKC',url:'https://kalshi.com/markets/kxhightokc',lat:35.393, lon:-97.601, tz:'America/Chicago',    utcOff:-6,regime:'Southern Plains',rc:'badge-amber'},
+  {id:'sat',label:'SAT', name:'San Antonio',   station:'KSAT',sl:'San Antonio Intl',      ticker:'KXHIGHTSATX',url:'https://kalshi.com/markets/kxhightsatx',lat:29.533,lon:-98.470, tz:'America/Chicago',    utcOff:-6,regime:'Gulf moisture',  rc:'badge-blue'},
+  {id:'msy',label:'NOLA',name:'New Orleans',   station:'KMSY',sl:'Louis Armstrong Intl',  ticker:'KXHIGHTNOLA',url:'https://kalshi.com/markets/kxhightnola',lat:29.993,lon:-90.258, tz:'America/Chicago',    utcOff:-6,regime:'Gulf/sea breeze',rc:'badge-blue'},
+];
+const VOLS={nyc:'$144k',lax:'$73k',mia:'$99k',chi:'$57k',atx:'$58k',dc:'$28k',phl:'$29k',bos:'$15k',atl:'$30k',sea:'$22k',sfo:'$31k',den:'$25k',msp:'$16k',dal:'$18k',phx:'$34k',hou:'$19k',lv:'$26k',okc:'$11k',sat:'$9k',msy:'$17k'};
+const MODELS=[
+  {id:'gfs', label:'GFS', color:'#3b82f6',omModel:'gfs_seamless', rmse:[1.8,2.2,2.8,3.5,4.4],weight:1.0},
+  {id:'euro',label:'Euro',color:'#22c55e',omModel:'ecmwf_ifs025',rmse:[1.5,1.9,2.4,3.0,3.9],weight:1.3},
+  {id:'nam', label:'NAM', color:'#f97316',omModel:'nam_seamless', rmse:[1.6,2.0,2.9,4.1,5.2],weight:0.9},
+  {id:'icon',label:'ICON',color:'#a855f7',omModel:'icon_seamless',rmse:[1.7,2.1,2.6,3.3,4.2],weight:1.0},
+  {id:'gem', label:'GEM', color:'#14b8a6',omModel:'gem_seamless', rmse:[1.8,2.2,2.7,3.4,4.3],weight:0.9},
+  {id:'mos', label:'MOS', color:'#f59e0b',omModel:'gfs_seamless', rmse:[1.2,1.5,2.0,2.7,3.4],weight:1.5},
+];
+const LEADS=[{label:'Today',days:0},{label:'+1d',days:1},{label:'+2d',days:2},{label:'+3d',days:3},{label:'+5d',days:5}];
+const RI={0:0,1:1,2:2,3:3,5:4};
+
+let S={city:0,lead:1,page:'market'};
+const WX_CACHE={};
+const OBS_CACHE={};
+let pChart=null;
+let chatHistory=[];
+
+function erf(x){const t=1/(1+0.3275911*Math.abs(x));const p=t*(0.254829592+t*(-0.284496736+t*(1.421413741+t*(-1.453152027+t*1.061405429))));const r=1-p*Math.exp(-x*x);return x>=0?r:-r}
+function ncdf(x,m,s){return 0.5*(1+erf((x-m)/(s*Math.sqrt(2))))}
+function npdf(x,m,s){return(1/(s*Math.sqrt(2*Math.PI)))*Math.exp(-0.5*((x-m)/s)**2)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function getRI(){return RI[LEADS[S.lead].days]}
+function weightedCons(f){const ri=getRI();let sw=0,wf=0;MODELS.forEach(m=>{const w=m.weight/m.rmse[ri];sw+=w;wf+=w*f[m.id]});return wf/sw}
+function blendedSigma(f){const ri=getRI();const c=weightedCons(f);let sw=0,wv=0;MODELS.forEach(m=>{const w=m.weight/m.rmse[ri];sw+=w;wv+=w*(m.rmse[ri]**2+(f[m.id]-c)**2)});return Math.sqrt(wv/sw)}
+
+async function fetchWxForCity(city,days){
+  if(!WX_CACHE[city.id])WX_CACHE[city.id]={};
+  if(WX_CACHE[city.id][days])return WX_CACHE[city.id][days];
+  const tgt=new Date();tgt.setDate(tgt.getDate()+days);
+  const ds=tgt.toISOString().split('T')[0];
+  const f={};
+  await Promise.all(MODELS.filter(m=>m.id!=='mos').map(async m=>{
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max&temperature_unit=fahrenheit&timezone=${encodeURIComponent(city.tz)}&start_date=${ds}&end_date=${ds}&models=${m.omModel}`);
+      if(!r.ok)return;
+      const j=await r.json();
+      const v=j?.daily?.temperature_2m_max?.[0];
+      if(v!=null&&!isNaN(v))f[m.id]=v;
+    }catch(e){}
+  }));
+  const sv=Object.values(f);
+  const avg=sv.length>0?sv.reduce((a,b)=>a+b,0)/sv.length:72;
+  MODELS.forEach(m=>{if(m.id==='mos')return;if(f[m.id]==null)f[m.id]=avg;});
+  f['mos']=(f['gfs']??avg)*0.96+avg*0.04;
+  WX_CACHE[city.id][days]=f;
+  return f;
+}
+
+async function fetchObsForCity(city){
+  if(OBS_CACHE[city.id]?.length>0)return OBS_CACHE[city.id];
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&hourly=temperature_2m&temperature_unit=fahrenheit&timezone=${encodeURIComponent(city.tz)}&past_hours=12&forecast_hours=1`);
+    if(r.ok){
+      const j=await r.json();
+      if(j?.hourly?.temperature_2m){
+        const obs=[];
+        j.hourly.time.slice(0,-1).forEach((t,i)=>{
+          const v=j.hourly.temperature_2m[i];
+          if(v!=null)obs.push({t:t.slice(11,16),v:Math.round(v)});
+        });
+        if(obs.length>0){OBS_CACHE[city.id]=obs.slice(-9);return OBS_CACHE[city.id];}
+      }
+    }
+  }catch(e){console.warn('Obs failed',city.id,e);}
+  OBS_CACHE[city.id]=[];
+  return OBS_CACHE[city.id];
+}
+
+function render(){
+  const city=CITIES[S.city];
+  const f=WX_CACHE[city.id]?.[LEADS[S.lead].days];
+  if(!f){document.getElementById('cons-val').textContent='…';return;}
+  const ri=getRI();
+  const c=weightedCons(f);
+  const sig=blendedSigma(f);
+  const vals=Object.values(f);
+  const spread=Math.max(...vals)-Math.min(...vals);
+  const obs=OBS_CACHE[city.id]||[];
+  const latObs=obs.length>0?obs[obs.length-1].v:null;
+  const localHr=(new Date().getUTCHours()+city.utcOff+24)%24;
+  const hLeft=Math.max(0,16-localHr);
+  const postMean=latObs!=null?latObs+hLeft*0.75:c;
+  const postSig=Math.max(0.7,1.8*(1-clamp(localHr/16,0,0.88)));
+
+  document.getElementById('city-name').textContent=city.name;
+  document.getElementById('city-station').textContent=`${city.station} · ${city.sl} · NWS Daily Climate settlement`;
+  const rb=document.getElementById('regime-badge');rb.textContent=city.regime;rb.className='badge '+city.rc;
+  const hr=new Date().getUTCHours();
+  document.getElementById('run-badge').textContent=(hr>=18?'18z':hr>=12?'12z':hr>=6?'06z':'00z')+' run';
+  document.getElementById('obs-val').textContent=latObs!=null?latObs+'°':'—°';
+  document.getElementById('cons-val').textContent=c.toFixed(1)+'°';
+  const confLbl=spread<3?'High confidence':spread<6?'Moderate':'Low confidence';
+  document.getElementById('cons-conf').textContent=confLbl;
+  document.getElementById('cell-cons').className='hcell '+(spread<3?'c-green':spread<6?'c-amber':'c-red');
+  document.getElementById('spread-val').textContent=spread.toFixed(1)+'°';
+  document.getElementById('spread-sub').textContent=spread<3?'Models agree':spread<6?'Some spread':'Wide spread';
+  document.getElementById('cell-spread').className='hcell '+(spread<3?'c-green':spread<6?'c-amber':'c-red');
+
+  const os=document.getElementById('obs-strip');os.innerHTML='';
+  obs.forEach((o,i)=>{
+    const chip=document.createElement('div');
+    chip.className='oc'+(i===obs.length-1?' now':'');
+    chip.innerHTML=`<div class="oc-t">${o.t}</div><div class="oc-v">${o.v}°</div>`;
+    os.appendChild(chip);
+  });
+
+  document.getElementById('rmse-badge').textContent=`${LEADS[S.lead].label} · ±${MODELS[5].rmse[ri].toFixed(1)}° to ±${MODELS[2].rmse[ri].toFixed(1)}°`;
+  const minV=Math.min(...vals)-4,maxV=Math.max(...vals)+4,rng=maxV-minV;
+  const mbEl=document.getElementById('model-bars');mbEl.innerHTML='';
+  MODELS.forEach(m=>{
+    const fv=f[m.id];const rmse=m.rmse[ri];
+    const fp=clamp((fv-minV)/rng*100,2,98);
+    const el=clamp((fv-rmse-minV)/rng*100,0,100);
+    const ew=clamp(rmse*2/rng*100,1,55);
+    const row=document.createElement('div');row.className='mrow';
+    row.innerHTML=`<span class="mtag" style="color:${m.color}">${m.label}</span><div class="mrow-outer"><div class="mtrack"><div class="merr" style="left:${el.toFixed(1)}%;width:${ew.toFixed(1)}%;background:${m.color}"></div><div class="mfill" style="width:${fp.toFixed(1)}%;background:${m.color}"></div><span class="mval" style="color:${m.color}">${fv.toFixed(1)}°</span><span class="msig">±${rmse.toFixed(1)}°</span></div></div>`;
+    mbEl.appendChild(row);
+  });
+  document.getElementById('rmse-note').textContent=`MOS ±${MODELS[5].rmse[ri].toFixed(1)}° (tightest) → NAM ±${MODELS[2].rmse[ri].toFixed(1)}° (widest) at ${LEADS[S.lead].label}`;
+
+  const tRange=[];for(let t=c-14;t<=c+14;t+=0.4)tRange.push(parseFloat(t.toFixed(1)));
+  const datasets=MODELS.map(m=>({label:m.label,data:tRange.map(t=>parseFloat((npdf(t,f[m.id],m.rmse[ri])*100).toFixed(3))),borderColor:m.color,backgroundColor:m.color+'1a',borderWidth:1.5,fill:true,tension:0.4,pointRadius:0}));
+  if(pChart){pChart.destroy();pChart=null;}
+  const ctx=document.getElementById('prob-chart');
+  if(ctx)pChart=new Chart(ctx,{type:'line',data:{labels:tRange,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},scales:{x:{ticks:{autoSkip:true,maxTicksLimit:9,font:{size:10},color:'#4d6080',callback:(v,i)=>tRange[i]%4===0?tRange[i]+'°':''},grid:{color:'rgba(99,130,200,0.05)'},border:{color:'rgba(99,130,200,0.08)'}},y:{ticks:{font:{size:10},color:'#4d6080'},grid:{color:'rgba(99,130,200,0.05)'},border:{color:'rgba(99,130,200,0.08)'}}},animation:false}});
+
+  document.getElementById('prob-sub').textContent=`Consensus: ${c.toFixed(1)}°F · σ: ${sig.toFixed(1)}°F · Bayes: ${postMean.toFixed(1)}°F ±${postSig.toFixed(1)}°`;
+  const base=Math.round(c/2)*2;
+  const prEl=document.getElementById('prob-rows');prEl.innerHTML='';
+  for(let s=base-8;s<=base+8;s+=2){
+    const mp=((1-ncdf(s,c,sig))*100);
+    const bp=((1-ncdf(s,postMean,postSig))*100);
+    const delta=bp-mp;
+    const isNear=Math.abs(s-Math.round(c))<3;
+    const dc=Math.abs(delta)>5?(delta>0?'up':'dn'):'neu';
+    const row=document.createElement('div');row.className='prow'+(isNear?' hi':'');
+    row.innerHTML=`<span class="pc0">≥ ${s}°F</span><div class="pbar-wrap"><div class="pbar-fill" style="width:${clamp(mp,0,100).toFixed(0)}%"></div></div><span class="ppct">${mp.toFixed(0)}%</span><span class="pdelta ${dc}">${delta>0?'+':''}${delta.toFixed(0)}%</span>`;
+    prEl.appendChild(row);
+  }
+
+  document.getElementById('bayes-sub').textContent=`Local: ${localHr}:00 · ~${hLeft.toFixed(0)}h to peak · σ now ±${postSig.toFixed(1)}°`;
+  const strikes=[postMean-4,postMean-2,Math.round(postMean),postMean+2,postMean+4];
+  const irEl=document.getElementById('intra-rows');irEl.innerHTML='';
+  strikes.forEach(s=>{
+    const prior=(1-ncdf(s,c,sig))*100;
+    const post=(1-ncdf(s,postMean,postSig))*100;
+    const delta=post-prior;
+    const dc=Math.abs(delta)>5?(delta>0?'var(--green)':'var(--red)'):'var(--t3)';
+    const row=document.createElement('div');row.className='irow';
+    row.innerHTML=`<span class="ilbl">≥ ${s.toFixed(0)}°F</span><div class="ipbar"><div class="ipfill" style="width:${clamp(post,0,100).toFixed(0)}%;background:var(--blue)"></div></div><span class="ipval">${post.toFixed(0)}%</span><span class="idelta" style="color:${dc}">${delta>0?'+':''}${delta.toFixed(0)}%</span>`;
+    irEl.appendChild(row);
+  });
+  document.getElementById('intra-note').textContent=`Prior: ${c.toFixed(1)}°F · Posterior: ${postMean.toFixed(1)}°F · σ: ±${postSig.toFixed(1)}° · Obs: ${latObs!=null?latObs+'°F':'not yet available'}`;
+  document.getElementById('kcta').href=city.url;
+  document.getElementById('kcta-sub').textContent=`${city.ticker} · open Kalshi to see live contract prices`;
+  updateChatContext();
+}
+
+function renderAll(){
+  const lead=LEADS[S.lead];
+  document.getElementById('all-lead-lbl').textContent=`Lead: ${lead.label}`;
+  const el=document.getElementById('all-list');el.innerHTML='';
+  CITIES.forEach((city,i)=>{
+    const f=WX_CACHE[city.id]?.[lead.days];
+    const c2=f?weightedCons(f):null;
+    const vals2=f?Object.values(f):[];
+    const sp2=vals2.length>0?Math.max(...vals2)-Math.min(...vals2):null;
+    const cc=sp2==null?'conf-md':sp2<3?'conf-hi':sp2<6?'conf-md':'conf-lo';
+    const ct=sp2==null?'—':sp2<3?'High':sp2<6?'Moderate':'Low';
+    const row=document.createElement('div');row.className='arow'+(i===S.city?' sel':'');
+    row.innerHTML=`<div><div class="ar-name">${city.name}</div><div class="ar-tick">${city.ticker}</div></div><div class="ar-cons">${c2?c2.toFixed(1)+'°':'…'}</div><div class="ar-conf ${cc}">${ct}</div><div class="ar-vol">${VOLS[city.id]||'—'}</div>`;
+    row.onclick=()=>{S.city=i;buildTabs();refreshCity();switchPage('market');};
+    el.appendChild(row);
+  });
+}
+
+const SUGGESTIONS=[
+  'NYC ≥72°F YES is at 55¢ — is there edge?',
+  'Should I bet NO on the high bands?',
+  'Models are spread wide — what does that mean?',
+  'What does the Bayesian update tell me?',
+  'Is this a good intraday setup right now?',
+  'Miami ≥88°F is at 30¢ — model says?',
+  'When is the best time of day to trade?',
+  'How does Kalshi settlement work?',
+];
+
+function buildSuggestions(){
+  const el=document.getElementById('sug-chips');el.innerHTML='';
+  SUGGESTIONS.forEach(s=>{
+    const chip=document.createElement('div');
+    chip.className='sug-chip';chip.textContent=s;
+    chip.onclick=()=>{document.getElementById('chat-input').value=s;sendChat();};
+    el.appendChild(chip);
+  });
+}
+
+function getMarketContext(){
+  const city=CITIES[S.city];
+  const f=WX_CACHE[city.id]?.[LEADS[S.lead].days];
+  if(!f)return{city:city.name,ready:false};
+  const c=weightedCons(f);
+  const sig=blendedSigma(f);
+  const vals=Object.values(f);
+  const spread=Math.max(...vals)-Math.min(...vals);
+  const obs=OBS_CACHE[city.id]||[];
+  const latObs=obs.length>0?obs[obs.length-1].v:null;
+  const localHr=(new Date().getUTCHours()+city.utcOff+24)%24;
+  const hLeft=Math.max(0,16-localHr);
+  const postMean=latObs!=null?latObs+hLeft*0.75:c;
+  const postSig=Math.max(0.7,1.8*(1-clamp(localHr/16,0,0.88)));
+  const ri=getRI();
+  const modelBreakdown=MODELS.map(m=>`${m.label}: ${f[m.id].toFixed(1)}°F ±${m.rmse[ri].toFixed(1)}°`).join(', ');
+  const base=Math.round(c/2)*2;
+  const strikeTable=[];
+  for(let s=base-8;s<=base+8;s+=2){
+    const mp=((1-ncdf(s,c,sig))*100).toFixed(0);
+    const bp=((1-ncdf(s,postMean,postSig))*100).toFixed(0);
+    strikeTable.push(`≥${s}°F: model ${mp}% / bayes ${bp}%`);
+  }
+  return{ready:true,city:city.name,ticker:city.ticker,station:city.station,leadTime:LEADS[S.lead].label,consensus:c.toFixed(1),sigma:sig.toFixed(1),spread:spread.toFixed(1),confidence:spread<3?'high':spread<6?'moderate':'low',latObs:latObs!=null?latObs+'°F':'not available',localHour:localHr,hoursTopeak:hLeft.toFixed(0),posteriorMean:postMean.toFixed(1),posteriorSigma:postSig.toFixed(1),regime:city.regime,vol:VOLS[city.id]||'unknown',modelBreakdown,strikeTable:strikeTable.join(' | ')};
+}
+
+function updateChatContext(){
+  const ctx=getMarketContext();
+  document.getElementById('ctx-city').textContent=ctx.ready?`${ctx.city} · ${ctx.ticker} · ${ctx.leadTime}`:ctx.city;
+  document.getElementById('ctx-details').textContent=ctx.ready?`Consensus: ${ctx.consensus}°F · σ: ${ctx.sigma}°F · Spread: ${ctx.spread}°F (${ctx.confidence}) · Obs: ${ctx.latObs} · Bayes: ${ctx.posteriorMean}°F ±${ctx.posteriorSigma}°`:'Fetching data…';
+}
+
+function buildSystemPrompt(ctx){
+  if(!ctx.ready)return`You are TempEdge AI, a weather-based trading assistant for Kalshi daily high temperature markets. Data is still loading.`;
+  return`You are TempEdge AI — an expert assistant for finding edge in Kalshi daily high temperature prediction markets using live weather model data.
+
+CURRENT MARKET STATE:
+- City: ${ctx.city} (${ctx.ticker}) · Station: ${ctx.station}
+- Lead time: ${ctx.leadTime}
+- Model consensus: ${ctx.consensus}°F · Blended σ: ±${ctx.sigma}°F
+- Ensemble spread: ${ctx.spread}°F (${ctx.confidence} confidence)
+- Current obs: ${ctx.latObs} · Local hour: ${ctx.localHour}:00 · ~${ctx.hoursTopeak}h to peak
+- Bayesian posterior: ${ctx.posteriorMean}°F ±${ctx.posteriorSigma}°F
+- Synoptic regime: ${ctx.regime} · Volume: ${ctx.vol}
+- Models: ${ctx.modelBreakdown}
+- Strike probabilities: ${ctx.strikeTable}
+
+YOUR JOB:
+The user will tell you a Kalshi contract price (e.g. "≥72°F YES is at 45¢"). You:
+1. Compare that price to the model probability for that strike (price in cents = market-implied %)
+2. Calculate edge: Model% minus Market% 
+3. Factor in ~2¢ round-trip Kalshi fee when assessing if edge is actionable
+4. Give a clear YES / NO / PASS recommendation with reasoning
+5. Note conviction level based on ensemble spread and lead time
+
+THRESHOLDS: Edge > +8% = potential YES buy. Edge < -8% = potential NO buy. Within ±4% = pass after fees.
+CONVICTION: Tight spread (< 3°F) = high conviction. Wide spread = size down or pass.
+INTRADAY: Bayesian posterior is more accurate than model-only once obs are available. By noon σ ≈ 0.8-1°F.
+SETTLEMENT: NWS Daily Climate Report next morning. Contracts settle on official ASOS daily high.
+MODELS: MOS has tightest error bars (bias-corrected). NAM is widest at longer leads.
+
+Be concise. Lead with the recommendation. Give specific numbers.`;
+}
+
+function addMsg(role,text){
+  const thread=document.getElementById('chat-thread');
+  const div=document.createElement('div');div.className='msg '+role;div.textContent=text;
+  thread.appendChild(div);div.scrollIntoView({behavior:'smooth',block:'end'});
+  return div;
+}
+function addThinking(){
+  const thread=document.getElementById('chat-thread');
+  const div=document.createElement('div');div.className='msg thinking';
+  div.innerHTML='<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+  thread.appendChild(div);div.scrollIntoView({behavior:'smooth',block:'end'});
+  return div;
+}
+
+async function sendChat(){
+  const input=document.getElementById('chat-input');
+  const sendBtn=document.getElementById('chat-send');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';input.style.height='auto';
+  sendBtn.disabled=true;
+  addMsg('user',text);
+  chatHistory.push({role:'user',content:text});
+  const thinking=addThinking();
+  try{
+    const ctx=getMarketContext();
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSystemPrompt(ctx),messages:chatHistory})});
+    const data=await resp.json();
+    const reply=data?.content?.map(b=>b.text||'').join('')||'No response received.';
+    thinking.remove();addMsg('ai',reply);
+    chatHistory.push({role:'assistant',content:reply});
+    if(chatHistory.length>20)chatHistory=chatHistory.slice(-20);
+  }catch(e){
+    thinking.remove();addMsg('ai','Connection error. Make sure you are on a hosted URL, not a local file.');
+  }
+  sendBtn.disabled=false;input.focus();
+}
+
+function switchPage(p){
+  S.page=p;
+  document.getElementById('scroll').style.display=p==='guide'?'none':'';
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+  document.getElementById(`page-${p}`).classList.add('on');
+  document.querySelectorAll('.nbtn').forEach(e=>e.classList.remove('on'));
+  document.getElementById(`nb-${p}`).classList.add('on');
+  if(p==='all')renderAll();
+  if(p==='guide')updateChatContext();
+}
+function buildTabs(){
+  const el=document.getElementById('rail');el.innerHTML='';
+  CITIES.forEach((c,i)=>{
+    const t=document.createElement('button');t.className='ctab'+(i===S.city?' on':'');t.textContent=c.label;
+    t.onclick=()=>{S.city=i;buildTabs();refreshCity();};el.appendChild(t);
+  });
+  setTimeout(()=>{const a=el.querySelector('.on');if(a)a.scrollIntoView({inline:'nearest',behavior:'smooth'});},50);
+}
+function buildLeads(){
+  const el=document.getElementById('lead-row');el.innerHTML='';
+  LEADS.forEach((l,i)=>{
+    const b=document.createElement('button');b.className='lbtn'+(i===S.lead?' on':'');b.textContent=l.label;
+    b.onclick=()=>{S.lead=i;buildLeads();refreshCity();};el.appendChild(b);
+  });
+}
+async function refreshCity(){
+  const city=CITIES[S.city];const days=LEADS[S.lead].days;
+  document.getElementById('cons-val').textContent='…';
+  await Promise.all([fetchWxForCity(city,days),fetchObsForCity(city)]);
+  render();
+  document.getElementById('upd').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+async function bgPrefetch(){
+  for(const city of CITIES){
+    for(const lead of LEADS)await fetchWxForCity(city,lead.days);
+    await fetchObsForCity(city);
+    await new Promise(r=>setTimeout(r,200));
+  }
+  if(S.page==='all')renderAll();
+}
+setInterval(refreshCity,5*60*1000);
+
+async function init(){
+  buildTabs();buildLeads();buildSuggestions();
+  await refreshCity();
+  setTimeout(()=>{const l=document.getElementById('loader');l.classList.add('out');setTimeout(()=>l.remove(),420);},800);
+  setTimeout(bgPrefetch,1500);
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('chat-input');
+  if(inp){
+    inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,100)+'px';});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}});
+  }
+});
+window.addEventListener('load',init);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
