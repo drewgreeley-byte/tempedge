@@ -2,7 +2,7 @@
   "name": "TempEdge",
   "short_name": "TempEdge",
   "description": "Live Kalshi daily high temperature market tracker",
-  "start_url": "/",
+  "start_url": "/tempedge/",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#0a0e1a",
